@@ -1,7 +1,7 @@
 name:              vm-backup-snapshot
 version:           0.0.0
 license:           MIT
-license-file:      LICENSE
+license-file:      LICENSE.txt
 author:            YAMAMOTO Yuji
 maintainer:        YAMAMOTO Yuji <whosekiteneverfly@gmail.com>
 synopsis:          Snapshot your virtual machine for backing-up
