@@ -1,0 +1,32 @@
+name:              vm-backup-snapshot
+version:           0.0.0
+license:           MIT
+license-file:      LICENSE
+author:            YAMAMOTO Yuji
+maintainer:        YAMAMOTO Yuji <whosekiteneverfly@gmail.com>
+synopsis:          Snapshot your virtual machine for backing-up
+description:       Snapshot your virtual machine for backing-up
+category:          Web
+stability:         Experimental
+cabal-version:     >= 1.8
+build-type:        Simple
+homepage:          https://github.com/igrep/
+
+source-repository head
+  type: git
+  location: https://github.com/igrep/plus2tweet.git
+
+executable vm-backup-snapshot
+  buildable: True
+  ghc-options: -Wall -fno-warn-unused-do-bind
+  main-is: main.hs
+
+  build-depends:
+      base >= 4.0
+    , Cabal >= 1.18
+    , process
+    , TraceUtils
+    , attoparsec
+    , text
+    , time
+    , old-locale
