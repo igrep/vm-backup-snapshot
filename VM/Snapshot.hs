@@ -21,6 +21,17 @@ data Snapshot = Snapshot
   , identifier :: T.Text
   , isCurrent :: Bool } deriving (Show, Read)
 
+{-
+VBoxManage snapshot <VM_NAME> list --machinereadable の出力例
+    SnapshotName="hoge"
+    SnapshotUUID="11111111-2222-3333-4444-555555555555"
+    SnapshotName-1="foo"
+    SnapshotUUID-1="66666666-7777-8888-9999-aaaaaaaaaaaa"
+    CurrentSnapshotName="foo"
+    CurrentSnapshotUUID="66666666-7777-8888-9999-aaaaaaaaaaaa"
+    CurrentSnapshotNode="SnapshotName-1"
+をパースする。
+-}
 list :: String -> IO [Snapshot]
 list vmName =
   parseOutput <$> T.pack <$> (readProcess "VBoxManage" ["snapshot", vmName, "list", "--machinereadable"] "")
@@ -39,6 +50,7 @@ handleExitCode :: ExitCode -> IO ()
 handleExitCode ExitSuccess = return ()
 handleExitCode e@(ExitFailure _) = throwIO e
 
+-- parseOnlyでないと、many1の結果が必ず Partial _ になってしまうらしいため、そうしている。
 parseOutput :: T.Text -> [Snapshot]
 parseOutput = either (const []) id . AT.parseOnly snapshotList
 
@@ -55,16 +67,18 @@ singleSnapshot = do
 
 currentSnapshot :: AT.Parser Snapshot
 currentSnapshot = do
-  (_, sName) <- "Current" .*> keyValueLine
+  (_, sName) <- "Current" .*> keyValueLine -- "Current" で始まるkeyValueLine。
   (_, uuid)  <- "Current" .*> keyValueLine
   "Current" .*> keyValueLine
   return $ Snapshot sName uuid True
 
+-- 「Key="Value"」のような内容の行。
+-- VBoxManage snapshot <VM_NAME> list --machinereadable の出力結果を構成する各行を表す。
 keyValueLine :: AT.Parser (T.Text, T.Text)
 keyValueLine = do
   key <- AT.takeTill ('=' ==)
-  AT.take 1
+  AT.take 1 -- consume '='
   value <- (AT.char '"') *> AT.takeTill ('"' ==)
-  AT.take 1
+  AT.take 1 -- consume the last '"'
   AT.endOfLine
   return (key, value)
