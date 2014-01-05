@@ -1,0 +1,1 @@
+see <http://the.igreque.info/posts/2014-01-05-attoparsec-pitfalls.html> (written in Japanese).
