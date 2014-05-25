@@ -11,23 +11,24 @@ import qualified Data.Text as T
 
 main :: IO ()
 main = do
-  commandFlags <- parseArgs <$> getArgs
+  (vmName:restArgs) <- getArgs
+  let commandFlags = parseCommandFlags restArgs
   -- TODO: use ReaderT IO
   when (doTake commandFlags) $ do
-    snapshotName <- ("Ubuntu" ++) <$> timestampSuffix <$> getZonedTime -- getCurrentTimeではUTCの時間が表示されてしまった！
-    putStrLn $ "Taking snapshot of Ubuntu " ++ snapshotName
-    S.take "Ubuntu" snapshotName
+    snapshotName <- (vmName ++) <$> timestampSuffix <$> getZonedTime -- getCurrentTimeではUTCの時間が表示されてしまった！
+    putStrLn $ "Taking snapshot of " ++ vmName ++ snapshotName
+    S.take vmName snapshotName
 
   when (doDelete commandFlags) $ do
-    (oldest:_) <- S.list "Ubuntu"
-    putStrLn $ "Deleting snapshot of Ubuntu " ++ T.unpack (S.name oldest)
-    S.delete "Ubuntu" oldest
+    (oldest:_) <- S.list vmName
+    putStrLn $ "Deleting snapshot of " ++ vmName ++ T.unpack (S.name oldest)
+    S.delete vmName oldest
 
 timestampSuffix :: FormatTime t => t -> String
 timestampSuffix = formatTime defaultTimeLocale "-%F-%H-%M"
 
-parseArgs :: [String] -> CommandFlags
-parseArgs commands
+parseCommandFlags :: [String] -> CommandFlags
+parseCommandFlags commands
   | null commands = error "No command specified!"
   | length commands <= 2 = CommandFlags ("take" `elem` commands) ("delete" `elem` commands)
   | otherwise = error $ "Invalid command: " ++ (intercalate " " commands)
