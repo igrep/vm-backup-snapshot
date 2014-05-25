@@ -14,6 +14,7 @@ import qualified Data.Attoparsec.Text as AT
 import Data.Attoparsec.Text ((.*>))
 import Control.Applicative
 import Control.Exception
+import Control.Monad (void)
 import Prelude hiding (take)
 
 data Snapshot = Snapshot
@@ -69,7 +70,7 @@ currentSnapshot :: AT.Parser Snapshot
 currentSnapshot = do
   (_, sName) <- "Current" .*> keyValueLine -- "Current" で始まるkeyValueLine。
   (_, uuid)  <- "Current" .*> keyValueLine
-  "Current" .*> keyValueLine
+  void $ "Current" .*> keyValueLine
   return $ Snapshot sName uuid True
 
 -- 「Key="Value"」のような内容の行。
@@ -77,8 +78,8 @@ currentSnapshot = do
 keyValueLine :: AT.Parser (T.Text, T.Text)
 keyValueLine = do
   key <- AT.takeTill ('=' ==)
-  AT.take 1 -- consume '='
+  void $ AT.take 1 -- consume '='
   value <- (AT.char '"') *> AT.takeTill ('"' ==)
-  AT.take 1 -- consume the last '"'
+  void $ AT.take 1 -- consume the last '"'
   AT.endOfLine
   return (key, value)
